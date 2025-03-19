@@ -12,12 +12,13 @@ class SnakeGame {
         this.gridSize = 20;
         this.tileCount = this.canvas.width / this.gridSize;
         this.snake = [];
-        this.food = {};
+        this.foods = []; // 改为数组存储多个食物
         this.direction = 'right';
         this.nextDirection = 'right';
         this.score = 0;
         this.gameLoop = null;
         this.speed = 100;
+        this.foodCount = 5; // 设置食物数量
         
         // 初始化游戏
         this.init();
@@ -34,8 +35,8 @@ class SnakeGame {
             { x: 3, y: 5 }
         ];
         
-        // 生成第一个食物
-        this.generateFood();
+        // 生成食物
+        this.generateFoods();
         
         // 重置分数
         this.score = 0;
@@ -84,17 +85,33 @@ class SnakeGame {
         });
     }
     
-    generateFood() {
-        this.food = {
-            x: Math.floor(Math.random() * this.tileCount),
-            y: Math.floor(Math.random() * this.tileCount)
-        };
-        
-        // 确保食物不会生成在蛇身上
-        for (let segment of this.snake) {
-            if (segment.x === this.food.x && segment.y === this.food.y) {
-                this.generateFood();
-                break;
+    generateFoods() {
+        this.foods = [];
+        while (this.foods.length < this.foodCount) {
+            const food = {
+                x: Math.floor(Math.random() * this.tileCount),
+                y: Math.floor(Math.random() * this.tileCount)
+            };
+            
+            // 确保食物不会生成在蛇身上
+            let validPosition = true;
+            for (let segment of this.snake) {
+                if (segment.x === food.x && segment.y === food.y) {
+                    validPosition = false;
+                    break;
+                }
+            }
+            
+            // 确保食物不会生成在其他食物上
+            for (let existingFood of this.foods) {
+                if (existingFood.x === food.x && existingFood.y === food.y) {
+                    validPosition = false;
+                    break;
+                }
+            }
+            
+            if (validPosition) {
+                this.foods.push(food);
             }
         }
     }
@@ -133,10 +150,20 @@ class SnakeGame {
         this.snake.unshift(head);
         
         // 检查是否吃到食物
-        if (head.x === this.food.x && head.y === this.food.y) {
-            this.score += 10;
-            this.updateScore();
-            this.generateFood();
+        let foodEaten = false;
+        this.foods = this.foods.filter(food => {
+            if (head.x === food.x && head.y === food.y) {
+                this.score += 10;
+                this.updateScore();
+                foodEaten = true;
+                return false;
+            }
+            return true;
+        });
+        
+        // 如果吃到食物，生成新的食物
+        if (foodEaten) {
+            this.generateFoods();
         } else {
             this.snake.pop();
         }
@@ -158,14 +185,16 @@ class SnakeGame {
             );
         }
         
-        // 绘制食物
+        // 绘制所有食物
         this.ctx.fillStyle = 'red';
-        this.ctx.fillRect(
-            this.food.x * this.gridSize,
-            this.food.y * this.gridSize,
-            this.gridSize - 2,
-            this.gridSize - 2
-        );
+        for (let food of this.foods) {
+            this.ctx.fillRect(
+                food.x * this.gridSize,
+                food.y * this.gridSize,
+                this.gridSize - 2,
+                this.gridSize - 2
+            );
+        }
     }
     
     updateScore() {
