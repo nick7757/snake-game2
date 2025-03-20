@@ -5,6 +5,10 @@
   ],
   "routes": [
     { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.*)", "dest": "/$1" }
+  ],
+  "alias": [
+    "www.nicksnakegame.com",
+    "nicksnakegame.com"
   ]
 }
