@@ -86,34 +86,38 @@ class SnakeGame {
     }
     
     generateFoods() {
-        this.foods = [];
-        while (this.foods.length < this.foodCount) {
-            const food = {
-                x: Math.floor(Math.random() * this.tileCount),
-                y: Math.floor(Math.random() * this.tileCount)
-            };
-            
-            // 确保食物不会生成在蛇身上
-            let validPosition = true;
-            for (let segment of this.snake) {
-                if (segment.x === food.x && segment.y === food.y) {
-                    validPosition = false;
-                    break;
+        // 只在初始化时生成所有食物
+        if (this.foods.length === 0) {
+            while (this.foods.length < this.foodCount) {
+                const food = this.generateSingleFood();
+                if (food) {
+                    this.foods.push(food);
                 }
-            }
-            
-            // 确保食物不会生成在其他食物上
-            for (let existingFood of this.foods) {
-                if (existingFood.x === food.x && existingFood.y === food.y) {
-                    validPosition = false;
-                    break;
-                }
-            }
-            
-            if (validPosition) {
-                this.foods.push(food);
             }
         }
+    }
+
+    generateSingleFood() {
+        const food = {
+            x: Math.floor(Math.random() * this.tileCount),
+            y: Math.floor(Math.random() * this.tileCount)
+        };
+        
+        // 确保食物不会生成在蛇身上
+        for (let segment of this.snake) {
+            if (segment.x === food.x && segment.y === food.y) {
+                return null;
+            }
+        }
+        
+        // 确保食物不会生成在其他食物上
+        for (let existingFood of this.foods) {
+            if (existingFood.x === food.x && existingFood.y === food.y) {
+                return null;
+            }
+        }
+        
+        return food;
     }
     
     update() {
@@ -161,9 +165,12 @@ class SnakeGame {
             return true;
         });
         
-        // 如果吃到食物，生成新的食物
+        // 如果吃到食物，只生成一个新的食物
         if (foodEaten) {
-            this.generateFoods();
+            const newFood = this.generateSingleFood();
+            if (newFood) {
+                this.foods.push(newFood);
+            }
         } else {
             this.snake.pop();
         }
